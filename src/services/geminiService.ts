@@ -6,9 +6,14 @@ let aiInstance: GoogleGenAI | null = null;
 const getAI = () => {
   if (aiInstance) return aiInstance;
 
-  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  let apiKey = '';
+  try {
+    apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (globalThis as any).process?.env?.GEMINI_API_KEY;
+  } catch (e) {
+    // Ignore errors in environments where process is not defined
+  }
 
-  if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "undefined") {
     throw new Error("Gemini API Key is not configured. Please set GEMINI_API_KEY in your environment.");
   }
 
