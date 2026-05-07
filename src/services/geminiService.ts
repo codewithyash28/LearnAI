@@ -1,7 +1,25 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { StudentProfile, Quiz, QuizQuestion, Flashcard } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+let aiInstance: GoogleGenAI | null = null;
+
+const getAI = () => {
+  if (aiInstance) return aiInstance;
+
+  let apiKey = '';
+  try {
+    apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || (globalThis as any).process?.env?.GEMINI_API_KEY;
+  } catch (e) {
+    // Ignore errors in environments where process is not defined
+  }
+
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "undefined") {
+    throw new Error("Gemini API Key is not configured. Please set GEMINI_API_KEY in your environment.");
+  }
+
+  aiInstance = new GoogleGenAI({ apiKey });
+  return aiInstance;
+};
 
 const handleGeminiError = (error: any) => {
   console.error("Gemini API Error:", error);
@@ -26,6 +44,7 @@ You generate highly personalized, adaptive educational content that:
 
 export async function getInitialAssessment(profile: StudentProfile): Promise<QuizQuestion[]> {
   try {
+    const ai = getAI();
     const prompt = `
       Generate a 5-question multiple choice assessment for a Class ${profile.classLevel} student interested in ${profile.subject} (Topic: ${profile.topic}).
       Language: ${profile.language}.
@@ -62,6 +81,7 @@ export async function getInitialAssessment(profile: StudentProfile): Promise<Qui
 
 export async function getLearningContent(profile: StudentProfile, level: string): Promise<any> {
   try {
+    const ai = getAI();
     const prompt = `
       Generate an ELITE personalized learning lesson for a Class ${profile.classLevel} student.
       Board: ${profile.board || 'CBSE'} (Universal Standard)
@@ -100,6 +120,7 @@ export async function getLearningContent(profile: StudentProfile, level: string)
 
 export async function getAdaptiveQuiz(profile: StudentProfile, level: string): Promise<Quiz> {
   try {
+    const ai = getAI();
     const prompt = `
       Generate a 10-question adaptive quiz for a Class ${profile.classLevel} student on the topic "${profile.topic}".
       Difficulty Level: ${level}
@@ -146,6 +167,7 @@ export async function getAdaptiveQuiz(profile: StudentProfile, level: string): P
 
 export async function getLearningPath(profile: StudentProfile): Promise<any[]> {
   try {
+    const ai = getAI();
     const prompt = `
       Create a personalized learning path for:
       Class: ${profile.classLevel}, Subject: ${profile.subject}, Topic: ${profile.topic}, Level: ${profile.level || 'Beginner'}
@@ -186,6 +208,7 @@ export async function getLearningPath(profile: StudentProfile): Promise<any[]> {
 
 export async function getLessonSummary(profile: StudentProfile, content: string): Promise<string> {
   try {
+    const ai = getAI();
     const prompt = `
       Summarize the following lesson on "${profile.topic}" for a ${profile.classLevel} student.
       Provide a "Visual Guide" summary using markdown. Use emojis, bullet points, and clear sections.
@@ -209,6 +232,7 @@ export async function getLessonSummary(profile: StudentProfile, content: string)
 
 export async function getLessonExercises(profile: StudentProfile, content: string): Promise<any[]> {
   try {
+    const ai = getAI();
     const prompt = `
       Create 3 interactive exercises based on this lesson:
       Topic: ${profile.topic}, Level: ${profile.level || 'Beginner'}
@@ -260,6 +284,7 @@ export async function getLessonExercises(profile: StudentProfile, content: strin
 
 export async function getTutorResponse(profile: StudentProfile, context: string, userQuestion: string, history: any[]): Promise<string> {
   try {
+    const ai = getAI();
     const chat = ai.chats.create({
       model: "gemini-3-flash-preview",
       config: {
@@ -277,6 +302,7 @@ export async function getTutorResponse(profile: StudentProfile, context: string,
 
 export async function getFlashcards(profile: StudentProfile, content: string): Promise<Flashcard[]> {
   try {
+    const ai = getAI();
     const prompt = `
       Based on the following lesson content for ${profile.topic}, generate 5-8 flashcards for quick revision.
       Each flashcard should have a 'front' (question or concept) and a 'back' (answer or explanation).
@@ -312,6 +338,7 @@ export async function getFlashcards(profile: StudentProfile, content: string): P
 
 export async function getKnowledgeMap(profile: StudentProfile): Promise<any> {
   try {
+    const ai = getAI();
     const prompt = `
       Create a conceptual "Knowledge Map" (a galaxy of related concepts) for a student studying ${profile.topic} (${profile.subject}) at Class ${profile.classLevel} level.
       
@@ -375,6 +402,7 @@ export async function getKnowledgeMap(profile: StudentProfile): Promise<any> {
 
 export async function getDailyChallenge(profile: StudentProfile): Promise<any> {
   try {
+    const ai = getAI();
     const prompt = `
       Generate a "Daily Brain Teaser" for a Class ${profile.classLevel} student interested in ${profile.subject}.
       Theme: ${profile.topic}.
@@ -412,6 +440,7 @@ export async function getDailyChallenge(profile: StudentProfile): Promise<any> {
 
 export async function getMasteryPrediction(profile: StudentProfile): Promise<any> {
   try {
+    const ai = getAI();
     const prompt = `
       Based on this student profile:
       Name: ${profile.name}, XP: ${profile.xp}, Topic: ${profile.topic}, Board: ${profile.board}

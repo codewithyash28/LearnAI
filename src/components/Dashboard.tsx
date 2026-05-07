@@ -35,7 +35,7 @@ import {
 } from 'lucide-react';
 import { StudentProfile, LeaderboardEntry, OfflineLesson, SimplifiedLanguage, ClassLevel, LearningStyle, Flashcard } from '../types';
 import { useEffect, useState } from 'react';
-import { getLearningPath, getKnowledgeMap, getDailyChallenge } from '../services/geminiService';
+import { getLearningPath, getKnowledgeMap, getDailyChallenge, getMasteryPrediction } from '../services/geminiService';
 import { cn } from '../lib/utils';
 import AnalyticsSection from './AnalyticsSection';
 import FlashcardOverlay from './FlashcardOverlay';
